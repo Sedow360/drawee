@@ -7,14 +7,19 @@ import { startCleanupJob } from './jobs/cleanupJob';
 import redis from './redis/client';
 import { ROOM_TTL } from './redis/roomRepository';
 
+
+const origin = process.env.CLIENT_URL || "http://localhost:5173";
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: origin,
+  credentials: true,
+}));
 app.use(express.json());
 
 const httpServer = http.createServer(app);
 export const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: origin,
     methods: ['GET', 'POST']
   }
 });

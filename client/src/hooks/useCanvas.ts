@@ -5,7 +5,6 @@ import { type Stroke } from '../types';
 export function useCanvas(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   strokesRef: React.MutableRefObject<Stroke[]>,
-  drawerOpenRef: React.MutableRefObject<boolean>,
   toolRef: React.MutableRefObject<'draw' | 'erase' | 'null'>,
   colorRef: React.MutableRefObject<string>,
   widthRef: React.MutableRefObject<number>,

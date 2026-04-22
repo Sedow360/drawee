@@ -13,8 +13,8 @@ interface Props {
 }
 
 export default function Canvas({ roomReady, messages, participants, username, roomName, handleLeave }: Props) {
-  const { canvasRef, strokesRef, toolRef, colorRef, widthRef, drawerOpenRef } = useRoomContext();
-  useCanvas(canvasRef, strokesRef, drawerOpenRef, toolRef, colorRef, widthRef);
+  const { canvasRef, strokesRef, toolRef, colorRef, widthRef } = useRoomContext();
+  useCanvas(canvasRef, strokesRef,  toolRef, colorRef, widthRef);
 
   return (
     <>
