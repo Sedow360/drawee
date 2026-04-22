@@ -41,7 +41,7 @@ export default function Drawer({ messages, participants, username, roomName, roo
                    rounded-lg bg-[#1a1a1a] text-white/70 hover:text-white
                    hover:bg-white/10 transition-colors"
         aria-label="Toggle drawer"
-        style={{ position: 'fixed', top: '8px', right: '16px', zIndex: 9999 }}
+        style={{ background: 'red', color: 'white' }}
       >
         {drawerOpen ? (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
