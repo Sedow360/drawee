@@ -7,8 +7,8 @@
 
 ![Express](https://img.shields.io/badge/Express-Server-000000?style=for-the-badge&logo=express&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-Storage-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Vercel](https://img.shields.io/badge/Frontend-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
-![Railway](https://img.shields.io/badge/Backend-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Frontend-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-Backend-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
 
 > A realtime collaborative whiteboard + chat app. No accounts, no signups — just share a room ID and start drawing together. Ephemeral by design: rooms vanish after 2 hours or when everyone leaves.
 
