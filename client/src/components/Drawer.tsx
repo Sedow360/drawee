@@ -13,6 +13,8 @@ interface Props {
   handleLeave: () => void;
 }
 
+const url = import.meta.env.VITE_CLIENT_URL || "http://localhost:5173"
+
 export default function Drawer({ messages, participants, username, roomName, roomId, handleLeave }: Props) {
   const { canvasRef, drawerOpenRef } = useRoomContext();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -63,7 +65,7 @@ export default function Drawer({ messages, participants, username, roomName, roo
             <div className="relative group min-w-0 flex-1">
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`${import.meta.env.VITE_CLIENT_URL}/${roomId}`).catch(console.error);
+                  navigator.clipboard.writeText(`${url}/${roomId}`).catch(console.error);
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
