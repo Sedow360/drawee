@@ -9,10 +9,11 @@ interface Props {
   participants: Participant[];
   username: string;
   roomName: string;
+  roomId: string;
   handleLeave: () => void;
 }
 
-export default function Drawer({ messages, participants, username, roomName, handleLeave }: Props) {
+export default function Drawer({ messages, participants, username, roomName, roomId, handleLeave }: Props) {
   const { canvasRef, drawerOpenRef } = useRoomContext();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -33,7 +34,7 @@ export default function Drawer({ messages, participants, username, roomName, han
       {/* Toggle button — always fixed top-right, shows hamburger or X */}
       <button
         onClick={() => drawerOpen ? closeDrawer() : openDrawer()}
-        className="fixed top-2 right-4 z-[60] w-9 h-9 flex items-center justify-center
+        className="fixed top-2 right-4 z-60 w-9 h-9 flex items-center justify-center
                    rounded-lg bg-[#1a1a1a] text-white/70 hover:text-white
                    hover:bg-white/10 transition-colors"
         aria-label="Toggle drawer"
@@ -62,7 +63,7 @@ export default function Drawer({ messages, participants, username, roomName, han
             <div className="relative group min-w-0 flex-1">
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(window.location.href).catch(console.error);
+                  navigator.clipboard.writeText(`${import.meta.env.VITE_CLIENT_URL}/${roomId}`).catch(console.error);
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}

@@ -117,6 +117,7 @@ export default function Room() {
           participants={participants}
           username={username}
           roomName={roomName}
+          roomId={roomId!}
           handleLeave={handleLeave}
         />
       </div>

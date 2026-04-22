@@ -9,10 +9,11 @@ interface Props {
   participants: Participant[];
   username: string;
   roomName: string;
+  roomId: string;
   handleLeave: () => void;
 }
 
-export default function Canvas({ roomReady, messages, participants, username, roomName, handleLeave }: Props) {
+export default function Canvas({ roomReady, messages, participants, username, roomName, roomId, handleLeave }: Props) {
   const { canvasRef, strokesRef, toolRef, colorRef, widthRef } = useRoomContext();
   useCanvas(canvasRef, strokesRef,  toolRef, colorRef, widthRef);
 
@@ -27,6 +28,7 @@ export default function Canvas({ roomReady, messages, participants, username, ro
             participants={participants}
             username={username}
             roomName={roomName}
+            roomId={roomId}
             handleLeave={handleLeave}
           />
       )}
