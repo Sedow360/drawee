@@ -46,7 +46,7 @@ export default function Room() {
       .catch(() => { if (!cancelled) setNotFound(true); });
 
     return () => { cancelled = true; };
-  }, [roomId]);
+  }, [roomId, roomName, navigate]);
 
   useEffect(() => {
       document.title =`${roomName}`;
