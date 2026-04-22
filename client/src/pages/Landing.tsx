@@ -201,7 +201,7 @@ export default function Landing() {
               disabled={loading}
               style={{ background:'#3a8fcc', color:'white', fontFamily:"'Caveat',cursive", fontSize:22, letterSpacing:'0.3px', boxShadow:'0 4px 14px rgba(58,143,204,0.3)', border:'none', cursor:'pointer' }}
             >
-              {loading ? 'hang on...' : mode === 'create' ? 'Create Room →' : 'Join Room →'}
+              {loading ? 'hang on...' : mode === 'create' ? 'Create Room' : 'Join Room'}
             </button>
 
             <p className="text-center mt-3" style={{ fontSize:12, color:'rgba(74,98,120,0.55)', fontWeight:500, fontFamily:"'Nunito',sans-serif" }}>

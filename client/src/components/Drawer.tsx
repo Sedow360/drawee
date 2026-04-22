@@ -71,7 +71,7 @@ export default function Drawer({ messages, participants, username, roomName, roo
                 }}
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors truncate max-w-full"
               >
-                {copied ? '✓ Copied!' : roomName}
+                {copied ? 'Copied!' : roomName}
               </button>
 
               <div className="

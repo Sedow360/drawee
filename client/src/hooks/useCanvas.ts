@@ -84,7 +84,38 @@ export function useCanvas(
     }
 
     function onPointerMove(e: PointerEvent) {
+      const prev = activePointers.current.get(e.pointerId);
       activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.current.size === 2) {
+        const [a, b] = [...activePointers.current.values()];
+        const prevPointers = [...activePointers.current.entries()].map(([id, pos]) =>
+          id === e.pointerId ? { x: prev!.x, y: prev!.y } : pos
+        );
+        const [pa, pb] = prevPointers;
+
+        // Previous and current midpoints
+        const prevMid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 };
+        const curMid  = { x: (a.x + b.x) / 2,   y: (a.y + b.y) / 2 };
+
+        // Previous and current distances (for zoom)
+        const prevDist = Math.hypot(pb.x - pa.x, pb.y - pa.y);
+        const curDist  = Math.hypot(b.x - a.x, b.y - a.y);
+
+        const zoomFactor = curDist / prevDist;
+        const prevZoom = zoomRef.current;
+        const newZoom = Math.min(20, Math.max(0.05, prevZoom * zoomFactor));
+
+        const wx = (prevMid.x - panRef.current.x) / prevZoom;
+        const wy = (prevMid.y - panRef.current.y) / prevZoom;
+
+        panRef.current = {
+          x: curMid.x - wx * newZoom,
+          y: curMid.y - wy * newZoom,
+        };
+        zoomRef.current = newZoom;
+        return;
+      }
 
       if (toolRef.current === 'draw' && currentStroke.current) {
         const [wx, wy] = screenToWorld(e.clientX, e.clientY);
