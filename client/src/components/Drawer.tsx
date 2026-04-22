@@ -33,6 +33,7 @@ export default function Drawer({ messages, participants, username, roomName, roo
 
   return (
     <>
+      <div style={{ position: 'fixed', top: 0, left: 0, background: 'red', zIndex: 99999, width: 50, height: 50 }} />
       {/* Toggle button — always fixed top-right, shows hamburger or X */}
       <button
         onClick={() => drawerOpen ? closeDrawer() : openDrawer()}
