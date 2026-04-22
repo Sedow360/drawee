@@ -119,7 +119,7 @@ export default function Landing() {
       >
 
         {/* ── Sun ── */}
-        <div className="sun-pulse absolute top-[-30px] right-20 z-0 pointer-events-none w-24 h-24 rounded-full"
+        <div className="sun-pulse absolute -top-7.5 right-20 z-0 pointer-events-none w-24 h-24 rounded-full"
           style={{ background: '#f9d74a' }} />
 
         {/* ── Clouds ── */}

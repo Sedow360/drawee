@@ -75,7 +75,7 @@ Drawee is a drop-in collaborative canvas built for friends. Open a room, share t
 | **Tailwind CSS** | Utility-first styling |
 | **Socket.io-client** | WebSocket connection to the server |
 
-### Backend (Deployed to Railway)
+### Backend (Deployed to Render)
 | Technology | Purpose |
 |------------|---------|
 | **Express** | HTTP server — room create/exists API |
@@ -88,7 +88,7 @@ Drawee is a drop-in collaborative canvas built for friends. Open a room, share t
 |-------|--------|-----|
 | Storage | Redis (server-side only) | Ephemeral, fast, zero-config TTL |
 | Frontend | Vercel | Next to zero config for Vite + React |
-| Backend | Railway (free tier) | Simple enough for demo/portfolio scale |
+| Backend | Render (free tier) | Simple enough for demo/portfolio scale |
 
 ---
 
@@ -112,7 +112,7 @@ graph TB
         J[useStrokeBatch.ts]
     end
 
-    subgraph "API + WebSocket - Railway"
+    subgraph "API + WebSocket - Render"
         K[POST /room/create]
         L[GET /room/:id/exists]
         M[Socket.io Server]
@@ -187,7 +187,7 @@ drawee/
 │   │   └── main.tsx
 │   └── package.json
 │
-└── server/                         # Deployed to Railway
+└── server/                         # Deployed to Render
     ├── src/
     │   ├── index.ts                # Express + Socket.io entry point
     │   ├── socket/
@@ -322,7 +322,7 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 
 ### Architecture Thinking
 - **Dual Storage Pattern**: Client-side array for fast rendering, Redis for persistence and catchup — keeping them in sync via WebSocket events rather than polling
-- **Designing for Constraints**: Free tier Railway, no database, no auth. Every architectural decision was shaped by what we weren't going to use
+- **Designing for Constraints**: Free tier Render, no database, no auth. Every architectural decision was shaped by what we weren't going to use
 - **Stroke as a Unit**: Emitting the full path on `pointerup` instead of streaming points on `pointermove` — one decision that simplified everything downstream (Redis writes, socket payloads, erase logic)
 
 ### Collaboration
