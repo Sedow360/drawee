@@ -36,7 +36,8 @@ export default function Drawer({ messages, participants, username, roomName, roo
       {/* Toggle button — always fixed top-right, shows hamburger or X */}
       <button
         onClick={() => drawerOpen ? closeDrawer() : openDrawer()}
-        className="fixed top-2 left-4 z-50 w-9 h-9 flex items-center justify-center
+        style={{ top: 'calc(env(safe-area-inset-top) + 8px)' }}
+        className="fixed left-4 z-50 w-9 h-9 flex items-center justify-center
                    rounded-lg bg-[#1a1a1a] text-white/70 hover:text-white
                    hover:bg-white/10 transition-colors"
         aria-label="Toggle drawer"
