@@ -11,6 +11,7 @@ export function useSocket(
   const [messages, setMessages] = useState<Message[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [synced, setSynced] = useState(false);
+  const [latestToast, setLatestToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (!roomId || !username || !roomName) return;
@@ -37,6 +38,7 @@ export function useSocket(
 
     socket.on('receive_message', (msg: Message) => {
       setMessages(prev => [...prev, msg]);
+      if (msg.senderName === 'System') setLatestToast(msg.text);
     });
 
     socket.on('participants_update', (p: Participant[]) => {
@@ -54,5 +56,5 @@ export function useSocket(
     };
   }, [roomId, username, roomName]);
 
-  return { messages, participants, synced };
+  return { messages, participants, synced, latestToast };
 }

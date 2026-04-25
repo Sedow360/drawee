@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import socket from '../lib/socket';
 import { useRoomContext } from '../context/RoomContext';
 
-const COLORS = ['#ffffff', '#f87171', '#fb923c', '#facc15', '#4ade80', '#60a5fa', '#c084fc'];
+const COLORS = ['#ffffff', '#f87171', '#fb923c', '#facc15', '#4ade80', '#60a5fa', '#c084fc', 
+  '#f472b6', '#78350f', '#6504c0', '#2dd4bf', 
+];
 
 export default function Toolbar() {
   const { toolRef, colorRef, widthRef, canvasRef } = useRoomContext();
@@ -47,7 +49,7 @@ export default function Toolbar() {
       <button onClick={() => setToolVal('erase')}
         className={`text-sm px-3 py-1 rounded-full transition-colors
           ${tool === 'erase' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white'}`}>
-        🧹
+        Erasure
       </button>
 
       <div className="w-px h-4 bg-white/20" />

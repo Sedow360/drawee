@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
 import Canvas from '../components/Canvas';
 import { RoomProvider } from '../context/RoomProvider';
+import { ToastContainer, toast } from 'react-toastify';
 
-const API = import.meta.env.VITE_SOCKET_URL;
+const API = import.meta.env.VITE_SOCKET_URL
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -24,6 +25,7 @@ export default function Room() {
   const drawerOpenRef = useRef(false);
 
   useEffect(() => {
+    console.log(API)
     let cancelled = false;
     if (!roomId) { navigate('/'); return; }
 
@@ -50,7 +52,7 @@ export default function Room() {
 
   useEffect(() => {
       document.title =`${roomName}`;
-    }, [roomName])
+    }, [roomName]);
 
   function confirmUsername() {
     const name = nameInput.trim();
@@ -66,12 +68,27 @@ export default function Room() {
   }
 
   // useSocket writes into strokesRef directly — same ref object passed to context
-  const { messages, participants, synced } = useSocket(
+  const { messages, participants, synced, latestToast } = useSocket(
     roomReady && !!username ? roomId! : '',
     roomName,
     username,
     strokesRef
   );
+
+  useEffect(() => {
+    if (latestToast) 
+      toast(`💫 ${latestToast}`, {
+              position: "top-center",
+              autoClose: 3000,
+              hideProgressBar: true,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: false,
+              progress: 0,
+              theme: "dark"
+              }
+      );
+  }, [latestToast]);
 
   if (notFound) return (
     <div className="w-screen h-screen bg-[#111] flex items-center justify-center">
@@ -111,6 +128,18 @@ export default function Room() {
             <p className="text-white/40 text-sm">Syncing…</p>
           </div>
         )}
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar
+          newestOnTop
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={false}
+          pauseOnHover
+          theme="dark"
+        />
         <Canvas
           roomReady={roomReady}
           messages={messages}

@@ -7,8 +7,7 @@ import { startCleanupJob } from './jobs/cleanupJob';
 import redis from './redis/client';
 import { ROOM_TTL } from './redis/roomRepository';
 
-
-const origin = process.env.CLIENT_URL || "http://localhost:5173";
+const origin = [process.env.CLIENT_URL ?? '', "http://localhost:5173"].filter(Boolean);
 const app = express();
 app.use(cors({
   origin: origin,

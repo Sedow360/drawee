@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API = import.meta.env.VITE_SOCKET_URL;
+const API = import.meta.env.VITE_SOCKET_URL
 
 function slugify(s: string): string {
   if (!s) return '';
@@ -45,6 +45,7 @@ export default function Landing() {
     setLoading(true);
 
     try {
+      console.log(API)
       if (mode === 'create') {
         const res = await fetch(`${API}/room/create`, {
           method: 'POST',

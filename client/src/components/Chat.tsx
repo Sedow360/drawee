@@ -15,7 +15,6 @@ export default function Chat({ messages, username }: Props) {
   function sendMessage() {
     if (!input.trim()) return;
     const msg: Message = { senderName: username, text: input.trim(), color: colorRef.current };
-    console.log(colorRef.current);
     socket.emit('send_message', msg);
     setInput('');
   }
