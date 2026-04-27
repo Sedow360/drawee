@@ -18,7 +18,7 @@
 
 ## 🎯 Overview
 
-Drawee is a drop-in collaborative canvas built for friends. Open a room, share the link, and anyone can draw on the same whiteboard in real time — no friction, no auth walls. Built as a deep-dive into WebSocket architecture, Redis-backed ephemeral state, and the surprisingly tricky problem of making a canvas work consistently across mobile and desktop.
+Drawee is a drop-in collaborative canvas built for friends. Open a room, share the link, and anyone can draw on the same whiteboard in real time — no friction, no auth walls. Built as a deep-dive into WebSocket architecture, Redis-backed ephemeral state, changeable theme and the surprisingly tricky problem of making a canvas work consistently across mobile and desktop.
 
 ### ✨ Why This Project?
 - **WebSocket-first thinking**: Not just slapping Socket.io on top of something — actually reasoning about what lives in the client, what lives in Redis, and what gets emitted when
@@ -40,6 +40,7 @@ Drawee is a drop-in collaborative canvas built for friends. Open a room, share t
   - Create a named room or join by room code — no account needed
   - Max 10 participants per room
   - Rooms auto-destroy after 2 hours via Redis TTL, or immediately when the last person leaves
+  - Can have themes "Light" or "Dark", selected only once during room creation
 
 - ✅ **Erase Without Breaking**
   - No white-paint eraser (breaks on dark-mode mobile — confirmed)
@@ -111,7 +112,6 @@ graph TB
     subgraph "Hooks"
         H[useSocket.ts]
         I[useCanvas.ts]
-        J[useStrokeBatch.ts]
     end
 
     subgraph "API + WebSocket - Render"
@@ -132,7 +132,7 @@ graph TB
 
     D --> H --> M
     E --> I
-    E --> J --> H
+    E --> H
     A -->|HTTP| K --> Q
     A -->|HTTP| L --> Q
     M --> N --> Q
@@ -180,7 +180,6 @@ drawee/
 │   │   ├── hooks/
 │   │   │   ├── useSocket.ts        # Socket.io connection + event listeners
 │   │   │   ├── useCanvas.ts        # Draw logic, rAF loop, coord denormalization
-│   │   │   └── useStrokeBatch.ts   # Point collection, coord normalization, emit on pointerup
 │   │   ├── context/
 │   │   │   ├── RoomContext.tsx
 │   │   │   └── RoomProvider.tsx
@@ -293,6 +292,13 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 - Every 5 minutes, if `deletedCount > 50`: fetch strokes, filter out `isDeleted` ones, rewrite the clean array, regenerate snapshot, reset counter
 - Only runs when it's worth it — skips rooms with minimal erasing
 
+### 6. Global theme state management
+**Problem:** Managing theme across multiple components resulted in prop drilling, which became redundant overtime. And storing the theme as "theme" during creation, but later accessing with "dark" caused errors and bugs
+
+**Solution:**
+- Used React's "createContext" and "useContext" hooks to have a global source of truth for all components, and avoid unecessary prop drilling
+- Stuck to "theme" across all API endpoints and properly debugged using developer's tool.
+
 ---
 
 ## 🔮 Potential Improvements
@@ -304,7 +310,6 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 - [ ] Loading skeleton while stroke history arrives
 
 ### Medium-Term
-- [ ] Zoom + pan — architecture already supports it (logical coord system means zoom is just a `scale + translate` on the canvas context at render time)
 - [ ] Cursor presence — show where each participant's pointer is in real time
 
 ### Long-Term
@@ -326,6 +331,7 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 - **Dual Storage Pattern**: Client-side array for fast rendering, Redis for persistence and catchup — keeping them in sync via WebSocket events rather than polling
 - **Designing for Constraints**: Free tier Render, no database, no auth. Every architectural decision was shaped by what we weren't going to use
 - **Stroke as a Unit**: Emitting the full path on `pointerup` instead of streaming points on `pointermove` — one decision that simplified everything downstream (Redis writes, socket payloads, erase logic)
+- **Theme as a global state**: Setting "theme" in "RoomContext" helped maintaining it without redundant prop drilling
 
 ### Collaboration
 - **Shared Architecture Docs**: Both contributors working from the same mental model of the system before writing a line of code
