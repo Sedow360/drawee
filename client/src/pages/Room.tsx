@@ -12,6 +12,11 @@ export default function Room() {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState(sessionStorage.getItem('username') ?? '');
+  const [dark, setDark] = useState(() => {
+    const stored = sessionStorage.getItem('theme');
+    return stored === null ? true : stored === 'true';
+  });
+
   const [nameInput, setNameInput] = useState('');
   const [roomName, setRoomName] = useState(sessionStorage.getItem('roomName') ?? '');
   const [roomReady, setRoomReady] = useState(false);
@@ -20,12 +25,11 @@ export default function Room() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef([]);
   const toolRef = useRef<'draw' | 'erase' | 'null'>('draw');
-  const colorRef = useRef('#ffffff');
+  const colorRef = useRef(`${dark ? '#ffffff' : '#000000'}`);
   const widthRef = useRef(4);
   const drawerOpenRef = useRef(false);
 
   useEffect(() => {
-    console.log(API)
     let cancelled = false;
     if (!roomId) { navigate('/'); return; }
 
@@ -41,14 +45,17 @@ export default function Room() {
       })
       .then(data => {
         if (!data || cancelled) return;
-        sessionStorage.setItem('roomName', data.name);
-        setRoomName(data.name);
+        const meta = typeof data.meta === 'string' ? JSON.parse(data.meta) : data.meta;
+        sessionStorage.setItem('roomName', meta.name);
+        sessionStorage.setItem('theme', JSON.stringify(meta.theme));
+        setRoomName(meta.name);
+        setDark(meta.theme)
         setRoomReady(true);
       })
       .catch(() => { if (!cancelled) setNotFound(true); });
 
     return () => { cancelled = true; };
-  }, [roomId, roomName, navigate]);
+  }, [roomId, roomName, navigate, dark]);
 
   useEffect(() => {
       document.title =`${roomName}`;
@@ -64,10 +71,10 @@ export default function Room() {
   function handleLeave() {
     sessionStorage.removeItem('username');
     sessionStorage.removeItem('roomName');
+    sessionStorage.removeItem('theme');
     navigate('/');
   }
 
-  // useSocket writes into strokesRef directly — same ref object passed to context
   const { messages, participants, synced, latestToast } = useSocket(
     roomReady && !!username ? roomId! : '',
     roomName,
@@ -85,10 +92,11 @@ export default function Room() {
               pauseOnHover: true,
               draggable: false,
               progress: 0,
-              theme: "dark"
+              // theme: "dark"
+              theme: dark ? "dark" : "light"
               }
       );
-  }, [latestToast]);
+  }, [latestToast, dark]);
 
   if (notFound) return (
     <div className="w-screen h-screen bg-[#111] flex items-center justify-center">
@@ -103,29 +111,46 @@ export default function Room() {
   );
 
   if (!username) return (
-    <div className="w-screen h-screen bg-[#111] flex items-center justify-center">
+    <div className={`w-screen h-screen flex items-center justify-center transition-colors duration-300
+      ${!dark ? 'bg-slate-50' : 'bg-[#111]'}`}>
+      
       <div className="flex flex-col gap-3 w-64">
-        <p className="text-white/50 text-sm">Choose a display name</p>
-        <input value={nameInput} onChange={e => setNameInput(e.target.value)}
+        <p className={`text-sm ${!dark ? 'text-slate-500' : 'text-white/50'}`}>
+          Choose a display name
+        </p>
+        
+        <input 
+          autoFocus
+          value={nameInput} 
+          onChange={e => setNameInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && confirmUsername()}
           placeholder="Your name"
-          className="bg-white/5 text-white/80 text-sm rounded-md px-3 py-2
-                     placeholder:text-white/20 border border-white/10
-                     focus:outline-none focus:border-white/25" />
-        <button onClick={confirmUsername}
-          className="py-2 rounded-md bg-white/10 text-white/70 hover:bg-white/15 hover:text-white text-sm transition-colors">
+          className={`text-sm rounded-md px-3 py-2 border transition-all focus:outline-none
+            ${!dark 
+              ? 'bg-white text-slate-900 border-slate-200 placeholder:text-slate-300 focus:border-slate-400' 
+              : 'bg-white/5 text-white/80 border-white/10 placeholder:text-white/20 focus:border-white/25'}`} 
+        />
+        
+        <button 
+          onClick={confirmUsername}
+          className={`py-2 rounded-md text-sm font-medium transition-all
+            ${!dark 
+              ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm' 
+              : 'bg-white/10 text-white/70 hover:bg-white/15 hover:text-white'}`}
+        >
           Join
         </button>
       </div>
     </div>
   );
 
+
   return (
-    <RoomProvider value={{ canvasRef, strokesRef, toolRef, colorRef, widthRef, drawerOpenRef }}>
+    <RoomProvider value={{ canvasRef, strokesRef, toolRef, colorRef, widthRef, drawerOpenRef, dark }}>
       <div className="w-screen h-screen bg-[#111] relative">
         {!synced && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#111]">
-            <p className="text-white/40 text-sm">Syncing…</p>
+          <div className={`absolute inset-0 z-50 flex items-center justify-center ${dark ? 'bg-[#111]' : 'bg-[#a8a5a5]'}`}>
+            <p className={`text-sm ${dark ? 'text-white/40' : 'text-black/40'}`}>Syncing…</p>
           </div>
         )}
         <ToastContainer
@@ -138,14 +163,14 @@ export default function Room() {
           pauseOnFocusLoss={false}
           draggable={false}
           pauseOnHover
-          theme="dark"
+          theme={`${dark ? "dark" : "light"}`}
         />
         <Canvas
           roomReady={roomReady}
           messages={messages}
           participants={participants}
           username={username}
-          roomName={roomName}
+          roomName={roomName!}
           roomId={roomId!}
           handleLeave={handleLeave}
         />

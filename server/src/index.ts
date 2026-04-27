@@ -29,18 +29,33 @@ startCleanupJob();
 app.get('/', (req, res) => res.json('Socket Server is Live'));
 
 app.post('/room/create', async (req, res) => {
-  const { roomId, name } = req.body;
+  const { roomId, name, theme } = req.body;
   const exists = await redis.exists(`room:${roomId}:meta`);
   if (exists) return res.status(409).json({ error: 'Room already exists' });
-  await redis.set(`room:${roomId}:meta`, name, 'EX', ROOM_TTL);
+  await redis.set(`room:${roomId}:meta`, JSON.stringify({ name, theme }), 'EX', ROOM_TTL);
   console.log(`${name} created, Id: ${roomId}`);
   res.json({ ok: true });
 });
 
 app.get('/room/:roomId/exists', async (req, res) => {
-  const name = await redis.get(`room:${req.params.roomId}:meta`);
-  name ? res.json({ ok: true, name: name }) : res.status(404).json({ error: 'Not found' });
+  try {
+    const { roomId } = req.params;
+    const meta = await redis.get(`room:${roomId}:meta`);
+
+    if (meta) {
+      return res.json({ 
+        ok: true, 
+        meta: JSON.parse(meta)
+      });
+    }
+
+    res.status(404).json({ error: 'Room not found' });
+  } catch (err) {
+    console.error('Redis Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log(`SERVER RUNNING ON PORT ${PORT}`));

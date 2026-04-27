@@ -8,6 +8,7 @@ export interface RoomContextValue {
   colorRef: React.MutableRefObject<string>;
   widthRef: React.MutableRefObject<number>;
   drawerOpenRef: React.MutableRefObject<boolean>;
+  dark: boolean;
 }
 
 export const RoomContext = createContext<RoomContextValue | null>(null);

@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function Canvas({ roomReady, messages, participants, username, roomName, roomId, handleLeave }: Props) {
-  const { canvasRef, strokesRef, toolRef, colorRef, widthRef } = useRoomContext();
+  const { canvasRef, strokesRef, toolRef, colorRef, widthRef, dark } = useRoomContext();
   useCanvas(canvasRef, strokesRef,  toolRef, colorRef, widthRef);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,7 @@ export default function Canvas({ roomReady, messages, participants, username, ro
   return (
     <>
       <div ref={containerRef} className="fixed inset-x-0" style={{ top: 0, height: '100dvh' }}>
-        <canvas ref={canvasRef} className="absolute inset-0 touch-none" />
+        <canvas ref={canvasRef} className={`absolute inset-0 touch-none ${dark ? 'bg-black' : 'bg-white'}`}/>
       </div>
       {roomReady && (
           <Drawer

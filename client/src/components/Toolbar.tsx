@@ -2,15 +2,24 @@ import { useEffect, useState } from 'react';
 import socket from '../lib/socket';
 import { useRoomContext } from '../context/RoomContext';
 
-const COLORS = ['#ffffff', '#f87171', '#fb923c', '#facc15', '#4ade80', '#60a5fa', '#c084fc', 
-  '#f472b6', '#78350f', '#6504c0', '#2dd4bf', 
-];
+const PALETTES = {
+  dark: ['#FFFFFF', '#FF5555', '#50FA7B', '#8BE9FD', '#BD93F9'],
+  light: ['#1A1A1A', '#D32F2F', '#388E3C', '#1976D2', '#7B1FA2']
+};
+
 
 export default function Toolbar() {
-  const { toolRef, colorRef, widthRef, canvasRef } = useRoomContext();
+  const { toolRef, colorRef, widthRef, canvasRef, dark } = useRoomContext();
   const [width, setWidth] = useState(4);
   const [tool, setTool] = useState<'draw' | 'erase' | 'null'>('draw');
   const [color, setColor] = useState('#f87171');
+
+  const COLORS = dark ? PALETTES.dark : PALETTES.light;
+  const containerStyle = !dark 
+    ? 'bg-white border-slate-200 text-slate-600 shadow-sm' 
+    : 'bg-black border-slate-800 text-slate-400 shadow-lg';
+
+  const dividerStyle = !dark ? 'bg-slate-200' : 'bg-white/20';
 
   useEffect(() => {
     setTool(toolRef.current);
@@ -44,33 +53,40 @@ export default function Toolbar() {
   }
 
   return (
-    <div className="shrink-0 flex flex-wrap items-center justify-center gap-3
-                    border-b border-white/5 px-4 py-3">
+    <div className={`shrink-0 flex flex-wrap items-center justify-center gap-3
+                    border-b px-4 py-3 transition-colors duration-200 ${containerStyle}`}>
+      
+      {/* Erase Button */}
       <button onClick={() => setToolVal('erase')}
         className={`text-sm px-3 py-1 rounded-full transition-colors
-          ${tool === 'erase' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white'}`}>
+          ${tool === 'erase' 
+            ? (dark ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-900') 
+            : (dark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')}`}>
         Erasure
       </button>
 
-      <div className="w-px h-4 bg-white/20" />
+      <div className={`w-px h-4 ${dividerStyle}`} />
 
+      {/* Color Palette */}
       {COLORS.map(c => (
         <button key={c} onClick={() => {setColorVal(c); setToolVal('draw');}}
           className="w-7 h-7 rounded-full transition-transform hover:scale-110 focus:outline-none"
           style={{
             background: c,
             boxShadow: color === c && tool === 'draw'
-              ? '0 0 0 2px #1a1a1a, 0 0 0 3.5px white' : 'none'
+              ? `0 0 0 2px ${dark ? '#000' : '#fff'}, 0 0 0 3.5px ${dark ? '#fff' : '#64748b'}` 
+              : 'none'
           }}
           aria-label={c}
         />
       ))}
 
-      <div className="w-px h-4 bg-white/20" />
+      <div className={`w-px h-4 ${dividerStyle}`} />
 
+      {/* Width Slider */}
       <input type="range" min={2} max={24} value={width}
         onChange={e => setWidthVal(Number(e.target.value))}
-        className="w-20 accent-white" />
+        className={`w-20 cursor-pointer ${dark ? 'accent-white' : 'accent-slate-600'}`} />
     </div>
   );
 }

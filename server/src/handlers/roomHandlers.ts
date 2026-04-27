@@ -11,7 +11,7 @@ export const registerRoomHandlers = (socket: Socket) => {
     cancelCleanup(roomId);
 
     if (!participants.has(roomId)) participants.set(roomId, new Map());
-    participants.get(roomId)!.set(socket.id, { username, tool: 'null', color: '#e74c3c' });
+    participants.get(roomId)!.set(socket.id, { username, tool: 'null', color: '' });
     broadcastParticipants(roomId);
 
     const [strokes, messages] = await Promise.all([getStrokes(roomId), getMessages(roomId)]);

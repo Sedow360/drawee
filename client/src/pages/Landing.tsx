@@ -9,7 +9,6 @@ function slugify(s: string): string {
   return s.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-
 function Cloud({ width }: { width: number }) {
   const h = Math.round(width * 0.32);
   return (
@@ -37,6 +36,7 @@ export default function Landing() {
   const [error, setError]   = useState('');
   const [mode, setMode]     = useState<'create' | 'join'>('create');
   const [loading, setLoading] = useState(false);
+  const [dark, setDark] = useState(true);
 
   async function handleSubmit() {
     const roomId = slugify(input);
@@ -45,15 +45,15 @@ export default function Landing() {
     setLoading(true);
 
     try {
-      console.log(API)
       if (mode === 'create') {
         const res = await fetch(`${API}/room/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomId, name: input.trim() }),
+          body: JSON.stringify({ roomId, name: input.trim(), theme: dark }),
         });
         if (res.status === 409) { setError('Room name taken'); setLoading(false); return; }
         sessionStorage.setItem('roomName', input.trim());
+        sessionStorage.setItem('theme', dark ? 'true' : 'false');
         navigate(`/${roomId}`);
       } else {
         const response = await fetch(`${API}/room/${roomId}/exists`);
@@ -64,8 +64,9 @@ export default function Landing() {
           return; 
         }
 
-        const res = await response.json();
-        sessionStorage.setItem('roomName', res.name);
+        const { meta } = await response.json();
+        sessionStorage.setItem('roomName', meta.name);
+        sessionStorage.setItem('theme', JSON.stringify(meta.theme));
         navigate(`/${roomId}`);
       }
     } catch {
@@ -182,16 +183,40 @@ export default function Landing() {
             </div>
 
             {/* input */}
-            <input
-              className="drawee-input w-full text-sm rounded-xl px-4 py-3 mb-3 outline-none"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              placeholder={mode === 'create' ? 'Give your room a name...' : 'Enter room code...'}
-              style={{ background:'rgba(223,240,251,0.4)', border:'2px solid rgba(123,189,232,0.4)', color:'#2c3e50', fontFamily:"'Nunito',sans-serif", fontWeight:500, boxSizing:'border-box' }}
-              onFocus={e => { e.target.style.borderColor='#7bbde8'; e.target.style.background='rgba(223,240,251,0.6)'; }}
-              onBlur={e  => { e.target.style.borderColor='rgba(123,189,232,0.4)'; e.target.style.background='rgba(223,240,251,0.4)'; }}
-            />
+            <div className='flex'>
+              <input
+                className="drawee-input w-full text-sm rounded-xl px-4 py-3 mb-3 outline-none"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                placeholder={mode === 'create' ? 'Give your room a name...' : 'Enter room code...'}
+                style={{ background:'rgba(223,240,251,0.4)', border:'2px solid rgba(123,189,232,0.4)', color:'#2c3e50', fontFamily:"'Nunito',sans-serif", fontWeight:500, boxSizing:'border-box' }}
+                onFocus={e => { e.target.style.borderColor='#7bbde8'; e.target.style.background='rgba(223,240,251,0.6)'; }}
+                onBlur={e  => { e.target.style.borderColor='rgba(123,189,232,0.4)'; e.target.style.background='rgba(223,240,251,0.4)'; }}
+              />
+              
+              {mode === 'create' && 
+                <div className="flex flex-col items-center gap-1.5 p-2.5 pt-0.5">
+                  <span className="text-[13px] font-bold uppercase tracking-tight text-black-500 leading-none" style={{ fontFamily: "'Caveat',cursive" }}>
+                    {dark ? 'Dark' : 'Light'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={dark}
+                      onChange={() => setDark(!dark)} 
+                    />
+                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer 
+                        peer-checked:bg-[#000000de] transition-all
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5 
+                        after:bg-white after:rounded-full after:h-4 after:w-4 
+                        after:transition-all peer-checked:after:translate-x-4">
+                    </div>
+                  </label>
+                </div>
+              }
+            </div>
 
             {error && <p className="text-xs mb-2 text-left" style={{ color:'#e85454' }}>{error}</p>}
 
