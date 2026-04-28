@@ -67,6 +67,7 @@ export default function Landing() {
         const { meta } = await response.json();
         sessionStorage.setItem('roomName', meta.name);
         sessionStorage.setItem('theme', JSON.stringify(meta.theme));
+        setLoading(false);
         navigate(`/${roomId}`);
       }
     } catch {

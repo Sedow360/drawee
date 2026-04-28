@@ -48,8 +48,8 @@ Drawee is a drop-in collaborative canvas built for friends. Open a room, share t
   - Idempotent: two people erasing the same stroke at the same time = no conflict
 
 - ✅ **New Joiner Catchup**
-  - Canvas snapshot (base64) shown instantly while stroke history loads from Redis
-  - Once the full strokes array arrives, the snapshot fades and the canvas redraws from source of truth
+  - Syncing overlay while room history is being rendered in the background
+  - Once the full strokes array arrives, the overlay fades and the canvas redraws from source of truth
   - New joiners never see a blank canvas mid-session
 
 - ✅ **Sidebar Chat**
@@ -211,26 +211,48 @@ drawee/
 
 ### Data Schemas
 
-**Stroke**
+**Strored in server memory**
+*Participant*
+```ts
+{
+  username: string,            //name of the participant
+  color: string,               // hex
+  tool: 'draw' | 'erase' | 'null'  //tool being used by the participant at a given instance
+}
+```
+
+```ts
+Map<roomId, Map<socketId, Participant>>  //In-memory map of roomId of a room and the participants in them, along with their respective socket ids
+```
+
+**Stored in Redis**
+*Room*
+```ts
+{
+  roomId: string,
+  createdAt: Date,
+  deletedAt: Date,             //Actually TTL is stored but close enough
+  snapshot: string             // base64 canvas screenshot (future feature)
+}
+```
+
+*Message*
+```ts
+{
+  senderName: string,          //name of the sender
+  color: string,               // hex
+  text: string                 //content
+}
+```
+
+*Stroke*
 ```ts
 {
   id: string,
   color: string,               // hex
-  coordinates: number[][],     // logical space (4096 × 2304)
+  width: number,               //width of brush stroke
+  points: number[][],     // logical space (4096 × 2304)
   isDeleted: boolean           // toggled on erase, never spliced out immediately
-}
-```
-
-**Room (Redis)**
-```ts
-{
-  uid: string,
-  players: { name: string, color: string }[],
-  messages: { senderName: string, color: string, text: string, time: Date }[],
-  strokes: Stroke[],
-  createdAt: Date,
-  deletedAt: Date,
-  snapshot: string             // base64 canvas screenshot
 }
 ```
 
@@ -242,6 +264,7 @@ drawee/
 |--------|-------|-------------|---------------|
 | POST | `/room/create` | Create a new room | No |
 | GET | `/room/:id/exists` | Check if a room exists before joining | No |
+| GET | `/room/:id/exists/:name` | Check if an username already exists in the room | No |
 
 Everything else — drawing, erasing, chatting, joining, leaving — happens over WebSocket events.
 
@@ -304,10 +327,7 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 ## 🔮 Potential Improvements
 
 ### Short-Term
-- [ ] Display participant list with names and assigned colors
 - [ ] Stroke undo (Ctrl+Z) for your own last stroke
-- [ ] Brush size selector in the toolbar
-- [ ] Loading skeleton while stroke history arrives
 
 ### Medium-Term
 - [ ] Cursor presence — show where each participant's pointer is in real time

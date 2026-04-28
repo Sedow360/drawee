@@ -6,6 +6,7 @@ import { initSocket } from './socket';
 import { startCleanupJob } from './jobs/cleanupJob';
 import redis from './redis/client';
 import { ROOM_TTL } from './redis/roomRepository';
+import { participants } from './services/roomServices';
 
 const origin = [process.env.CLIENT_URL ?? '', "http://localhost:5173"].filter(Boolean);
 const app = express();
@@ -42,14 +43,40 @@ app.get('/room/:roomId/exists', async (req, res) => {
     const { roomId } = req.params;
     const meta = await redis.get(`room:${roomId}:meta`);
 
-    if (meta) {
-      return res.json({ 
-        ok: true, 
-        meta: JSON.parse(meta)
-      });
+    if (!meta) res.status(404).json({ error: 'Room not found' });
+
+    const roomParticipants = participants.get(roomId);
+    const count = roomParticipants?.size ?? 0;
+
+    if (count >= 10) {
+      return res.status(403).json({ error: 'Room is full' });
     }
 
-    res.status(404).json({ error: 'Room not found' });
+    return res.json({ 
+      ok: true, 
+      meta: JSON.parse(meta!)
+    });
+
+  } catch (err) {
+    console.error('Redis Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/room/:roomId/exists/:username', async (req, res) => {
+  try {
+    const { roomId, username } = req.params;
+    const roomParticipants = participants.get(roomId);
+
+    const usernameTaken = [...(roomParticipants?.values() ?? [])].some(
+      p => p.username.toLowerCase() === username.toLowerCase()
+    );
+
+    if (usernameTaken) {
+      return res.status(409).json({ error: 'Username already taken in this room' });
+    }
+
+    res.json({ ok: true });
   } catch (err) {
     console.error('Redis Error:', err);
     res.status(500).json({ error: 'Internal server error' });

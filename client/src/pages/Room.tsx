@@ -21,6 +21,8 @@ export default function Room() {
   const [roomName, setRoomName] = useState(sessionStorage.getItem('roomName') ?? '');
   const [roomReady, setRoomReady] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [nameLoading, setNameLoading] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef([]);
@@ -61,9 +63,26 @@ export default function Room() {
       document.title =`${roomName}`;
     }, [roomName]);
 
-  function confirmUsername() {
+  async function confirmUsername() {
+    if (nameLoading) return;
     const name = nameInput.trim();
     if (!name) return;
+    setNameError('');
+    setNameLoading(true);
+
+    try {
+      const res = await fetch(`${API}/room/${roomId}/exists/${encodeURIComponent(name)}`);
+      if (res.status === 409) {
+        setNameError('Username already taken in this room');
+        setNameLoading(false);
+        return;
+      }
+    } catch {
+      setNameError('Something went wrong');
+      setNameLoading(false);
+      return;
+    }
+
     sessionStorage.setItem('username', name);
     setUsername(name);
   }
@@ -92,7 +111,6 @@ export default function Room() {
               pauseOnHover: true,
               draggable: false,
               progress: 0,
-              // theme: "dark"
               theme: dark ? "dark" : "light"
               }
       );
@@ -131,6 +149,10 @@ export default function Room() {
               : 'bg-white/5 text-white/80 border-white/10 placeholder:text-white/20 focus:border-white/25'}`} 
         />
         
+        {nameError && (
+          <p className="text-xs text-red-400">{nameError}</p>
+        )}
+
         <button 
           onClick={confirmUsername}
           className={`py-2 rounded-md text-sm font-medium transition-all
