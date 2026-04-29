@@ -98,7 +98,7 @@ export default function Drawer({ messages, participants, username, roomName, roo
 
           <Toolbar />
           <ParticipantsList participants={participants} dark={dark}/>
-          <Chat messages={messages} username={username} />
+          <Chat messages={messages} username={username} roomId={roomId} />
         </div>
       )}
     </>

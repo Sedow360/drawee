@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
@@ -7,6 +8,7 @@ import { startCleanupJob } from './jobs/cleanupJob';
 import redis from './redis/client';
 import { ROOM_TTL } from './redis/roomRepository';
 import { participants } from './services/roomServices';
+import { describeImage } from './services/describeImage';
 
 const origin = [process.env.CLIENT_URL ?? '', "http://localhost:5173"].filter(Boolean);
 const app = express();
@@ -83,6 +85,18 @@ app.get('/room/:roomId/exists/:username', async (req, res) => {
   }
 });
 
+app.post('/room/:roomId/describe', async (req, res) => {
+    const { imageBase64, prompt } = req.body;
+
+    try {
+      const description = await describeImage(imageBase64, prompt);
+
+      res.json({ ok: true, description: description });
+    } catch (err) {
+      console.log('Description error:', err);
+      res.status(500).json({ error: 'Description failed' });
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log(`SERVER RUNNING ON PORT ${PORT}`));

@@ -18,12 +18,13 @@
 
 ## 🎯 Overview
 
-Drawee is a drop-in collaborative canvas built for friends. Open a room, share the link, and anyone can draw on the same whiteboard in real time — no friction, no auth walls. Built as a deep-dive into WebSocket architecture, Redis-backed ephemeral state, changeable theme and the surprisingly tricky problem of making a canvas work consistently across mobile and desktop.
+Drawee is a drop-in collaborative canvas built for friends. Open a room, share the link, and anyone can draw on the same whiteboard in real time — no friction, no auth walls. Built as a deep-dive into WebSocket architecture, Redis-backed ephemeral state, changeable theme and the surprisingly tricky problem of making a canvas work consistently across mobile and desktop. Also, ask AI to get a *close enough* description of your scribbles...
 
 ### ✨ Why This Project?
 - **WebSocket-first thinking**: Not just slapping Socket.io on top of something — actually reasoning about what lives in the client, what lives in Redis, and what gets emitted when
 - **Mobile-first canvas**: Pointer Events API, logical coordinate normalization, `touch-action: none` — all the stuff that tutorials skip over and mobile users immediately hit
 - **Stateless by design**: No database, no auth, no persistence. Redis is the source of truth. The whole architecture is built around that constraint
+- **AI describes your drawing**: Ask AI to describe your scribbles
 - **Collab project**: Built together with a friend — real division of concerns, real handoffs
 
 ---
@@ -60,6 +61,9 @@ Drawee is a drop-in collaborative canvas built for friends. Open a room, share t
   - Every 5 minutes, server checks if enough strokes have been erased (threshold: 50)
   - If yes: filter out `isDeleted` strokes, rewrite the clean array to Redis, regenerate canvas snapshot
   - `deletedCount` lives in server memory — lightweight, no extra Redis keys
+
+- ✅ **Prompt Engineering**
+  - Using prompt engineer to use AI description feature
 
 ### Room Lifecycle — Three Layers
 - 🔁 **Redis TTL** — 2hr expiry set at room creation. Auto-deletes. Zero code required.
@@ -117,24 +121,29 @@ graph TB
     subgraph "API + WebSocket - Render"
         K[POST /room/create]
         L[GET /room/:id/exists]
-        M[Socket.io Server]
-        N[roomHandlers.ts]
-        O[strokeHandlers.ts]
-        P[chatHandlers.ts]
+        M[GET /room/:id/exists/:name]
+        N[POST /room/:id/describe]
+        O[Socket.io Server]
+        P[roomHandlers.ts]
+        Q[strokeHandlers.ts]
+        R[chatHandlers.ts]
     end
 
     subgraph "Storage - Redis"
-        Q[(Room State)]
-        R[(Strokes Array)]
-        S[(Messages Array)]
-        T[(Canvas Snapshot)]
+        S[(Room State)]
+        T[(Strokes Array)]
+        U[(Messages Array)]
+    end
+
+    subgraph "Storage - Server"
+        V[(RoomId - Participant pair map)]
     end
 
     D --> H --> M
     E --> I
     E --> H
-    A -->|HTTP| K --> Q
-    A -->|HTTP| L --> Q
+    A -->|HTTP| K --> S
+    A -->|HTTP| L --> S
     M --> N --> Q
     M --> O --> R
     M --> P --> S
@@ -201,7 +210,7 @@ drawee/
     │   │   └── roomRepository.ts   # ALL Redis read/write — nothing else touches Redis
     │   ├── services/
     │   │   ├── roomService.ts      # Room lifecycle, TTL, grace period timer
-    │   │   └── canvasService.ts    # Snapshot generation, compaction trigger
+    │   │   └── describeImage.ts    # AI API call and description generation
     │   ├── jobs/
     │   │   └── cleanupJob.ts       # Per-room compaction interval
     │   └── types/
@@ -212,6 +221,7 @@ drawee/
 ### Data Schemas
 
 **Strored in server memory**
+
 *Participant*
 ```ts
 {
@@ -226,6 +236,7 @@ Map<roomId, Map<socketId, Participant>>  //In-memory map of roomId of a room and
 ```
 
 **Stored in Redis**
+
 *Room*
 ```ts
 {
@@ -265,6 +276,7 @@ Map<roomId, Map<socketId, Participant>>  //In-memory map of roomId of a room and
 | POST | `/room/create` | Create a new room | No |
 | GET | `/room/:id/exists` | Check if a room exists before joining | No |
 | GET | `/room/:id/exists/:name` | Check if an username already exists in the room | No |
+| POST | `/room/:id/describe` | Ask AI to describe the current scribbles in the room | No |
 
 Everything else — drawing, erasing, chatting, joining, leaving — happens over WebSocket events.
 
@@ -333,7 +345,6 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 - [ ] Cursor presence — show where each participant's pointer is in real time
 
 ### Long-Term
-- [ ] AI describes your drawing — send `canvas.toDataURL()` to a vision model; snapshot architecture already makes this trivial
 - [ ] Past room archive — on room end, copy snapshot + metadata to a DB for the creator
 - [ ] Stroke simplification via Ramer-Douglas-Peucker if arrays get too large
 

@@ -3,8 +3,12 @@ import socket from '../lib/socket';
 import { useRoomContext } from '../context/RoomContext';
 
 const PALETTES = {
-  dark: ['#FFFFFF', '#FF5555', '#50FA7B', '#8BE9FD', '#BD93F9'],
-  light: ['#1A1A1A', '#D32F2F', '#388E3C', '#1976D2', '#7B1FA2']
+  dark: [
+    '#FFFFFF', '#6272A4', '#FF5555', '#FFB86C', '#F1FA8C', '#50FA7B', '#8BE9FD', '#BD93F9', '#FF79C6'
+  ],
+  light: [
+    '#1A1A1A', '#424242', '#D32F2F', '#F57C00', '#FBC02D', '#388E3C', '#1976D2', '#7B1FA2', '#C2185B'
+  ]
 };
 
 
@@ -27,17 +31,13 @@ export default function Toolbar() {
   }, []);
 
   function setToolVal(t: 'draw' | 'erase' | 'null') {
-    if (t == 'erase') {
-      if (toolRef.current === 'erase') {
-        setTool('null');
-        canvasRef.current!.style.cursor = 'default';
-        return;
-      }
-      canvasRef.current!.style.cursor = 'default';
-    }
-    toolRef.current = t;
-    setTool(t);
-    socket.emit('update_presence', { tool: t, color: colorRef.current });
+    const nextTool = toolRef.current === t ? 'null' : t;
+
+    canvasRef.current!.style.cursor = (nextTool === 'draw' || nextTool === 'erase') ? 'crosshair' : 'default';
+    toolRef.current = nextTool;
+    setTool(nextTool);
+
+    socket.emit('update_presence', { tool: nextTool, color: colorRef.current });
   }
 
   function setColorVal(c: string) {
@@ -69,7 +69,13 @@ export default function Toolbar() {
 
       {/* Color Palette */}
       {COLORS.map(c => (
-        <button key={c} onClick={() => {setColorVal(c); setToolVal('draw');}}
+        <button key={c} onClick={() => {
+          if (color === c) setToolVal('draw');
+          else {
+            setColorVal(c); 
+            if (tool === 'null') setToolVal('draw');
+          }
+        }}
           className="w-7 h-7 rounded-full transition-transform hover:scale-110 focus:outline-none"
           style={{
             background: c,

@@ -6,17 +6,61 @@ import { type Message } from '../types';
 interface Props {
   messages: Message[];
   username: string;
+  roomId: string;
 }
 
-export default function Chat({ messages, username }: Props) {
-  const { colorRef, dark } = useRoomContext();
+const API = import.meta.env.VITE_SOCKET_URL
+
+function AIres(text: string, dark: boolean): Message {
+  return { senderName: 'drawee🎨', text: `${text}`, color: `${dark ? '#ffffff' : '#000000'}`};
+}
+
+export default function Chat({ messages, username, roomId }: Props) {
+  const { colorRef, dark, canvasRef } = useRoomContext();
   const [input, setInput] = useState('');
 
-  function sendMessage() {
+  async function sendMessage() {
     if (!input.trim()) return;
     const msg: Message = { senderName: username, text: input.trim(), color: colorRef.current };
     socket.emit('send_message', msg);
     setInput('');
+
+    if (input.trim().startsWith('/describe')) {
+      const prompt = input.trim().slice('/describe'.length).trim();
+      
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        const msg: Message = AIres(`Can't get the snapshot chief`, dark);
+        socket.emit('send_message', msg);
+        return;
+      }
+      const temp = document.createElement('canvas');
+      temp.width = canvas.width;
+      temp.height = canvas.height;
+      const ctx = temp.getContext('2d')!;
+
+      ctx.fillStyle = dark ? '#000000' : '#ffffff';
+      ctx.fillRect(0, 0, temp.width, temp.height);
+      ctx.drawImage(canvas, 0, 0);
+
+      const imageBase64 = temp.toDataURL('image/png').split(',')[1];
+
+      await fetch(`${API}/room/${roomId}/describe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64, prompt, username }),
+      })
+      .then(async res => {
+        const data = await res.json();
+        const msg: Message = AIres(data.description, dark)
+        socket.emit('send_message', msg);
+      })
+      .catch(e => {
+        const msg: Message = AIres(`I am as confused as you are buddy...(${e})`, dark);
+        socket.emit('send_message', msg);
+        return;
+      });
+    }
   }
 
   return (

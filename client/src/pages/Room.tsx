@@ -74,16 +74,15 @@ export default function Room() {
       const res = await fetch(`${API}/room/${roomId}/exists/${encodeURIComponent(name)}`);
       if (res.status === 409) {
         setNameError('Username already taken in this room');
-        setNameLoading(false);
         return;
       }
     } catch {
       setNameError('Something went wrong');
-      setNameLoading(false);
       return;
     }
 
     sessionStorage.setItem('username', name);
+    setNameLoading(false);
     setUsername(name);
   }
 
@@ -140,7 +139,7 @@ export default function Room() {
         <input 
           autoFocus
           value={nameInput} 
-          onChange={e => setNameInput(e.target.value)}
+          onChange={e => {setNameInput(e.target.value); setNameError('');}}
           onKeyDown={e => e.key === 'Enter' && confirmUsername()}
           placeholder="Your name"
           className={`text-sm rounded-md px-3 py-2 border transition-all focus:outline-none
