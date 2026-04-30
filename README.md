@@ -106,11 +106,17 @@ graph TB
     subgraph "Client - Vercel"
         A[Landing Page] --> B[Create Room]
         A --> C[Join Room]
-        B --> D[Room / Canvas]
-        C --> D
-        D --> E[Canvas.tsx]
-        D --> F[Chat.tsx]
-        D --> G[Toolbar.tsx]
+        B --> M
+        C --> M
+
+        subgraph "Room Page"
+            D[Room / Canvas]
+            D --> DW[Drawer]
+            DW --> G[Toolbar]
+            DW --> PP[Participants List]
+            DW --> F[Chat.tsx]
+            D --> E[Canvas.tsx]
+        end
     end
 
     subgraph "Hooks"
@@ -118,7 +124,7 @@ graph TB
         I[useCanvas.ts]
     end
 
-    subgraph "API + WebSocket - Render"
+    subgraph "API + WebSocket - Railway"
         K[POST /room/create]
         L[GET /room/:id/exists]
         M[GET /room/:id/exists/:name]
@@ -127,6 +133,7 @@ graph TB
         P[roomHandlers.ts]
         Q[strokeHandlers.ts]
         R[chatHandlers.ts]
+        W[describeImage.ts]
     end
 
     subgraph "Storage - Redis"
@@ -139,15 +146,18 @@ graph TB
         V[(RoomId - Participant pair map)]
     end
 
-    D --> H --> M
+    M --> D
+    D --> H
     E --> I
     E --> H
+    H --> O
     A -->|HTTP| K --> S
     A -->|HTTP| L --> S
-    M --> N --> Q
-    M --> O --> R
-    M --> P --> S
-    O --> T
+    F -->|HTTP| N --> W
+    O --> P --> S
+    O --> P --> V
+    O --> Q --> T
+    O --> R --> U
 ```
 
 ### Data Flow — Stroke Lifecycle
@@ -185,6 +195,8 @@ drawee/
 │   │   │   ├── Canvas.tsx          # Canvas rendering
 │   │   │   ├── Chat.tsx            # Sidebar chat
 │   │   │   ├── Toolbar.tsx         # Drawing tools, color picker
+│   │   │   ├── PaticipantsList.tsx # List of participants in a room
+│   │   │   ├── LandingScene.tsx    # Landing page background elements
 │   │   │   └── Drawer.tsx
 │   │   ├── hooks/
 │   │   │   ├── useSocket.ts        # Socket.io connection + event listeners
@@ -371,8 +383,6 @@ Everything else — drawing, erasing, chatting, joining, leaving — happens ove
 ---
 
 ## 📧 Contact
-
-**Built by Rishita Talukdar**
 
 - GitHub: [@Ayush Maiti](https://github.com/Sedow360)
 - Project Repository: [Drawee](https://github.com/Sedow360/drawee)

@@ -56,7 +56,8 @@ export default function Chat({ messages, username, roomId }: Props) {
         socket.emit('send_message', msg);
       })
       .catch(e => {
-        const msg: Message = AIres(`I am as confused as you are buddy...(${e})`, dark);
+        const msg: Message = AIres(`I am as confused as you are buddy...`, dark);
+        console.log(e);
         socket.emit('send_message', msg);
         return;
       });

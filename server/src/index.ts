@@ -36,7 +36,6 @@ app.post('/room/create', async (req, res) => {
   const exists = await redis.exists(`room:${roomId}:meta`);
   if (exists) return res.status(409).json({ error: 'Room already exists' });
   await redis.set(`room:${roomId}:meta`, JSON.stringify({ name, theme }), 'EX', ROOM_TTL);
-  console.log(`${name} created, Id: ${roomId}`);
   res.json({ ok: true });
 });
 

@@ -73,7 +73,7 @@ export default function Toolbar() {
           if (color === c) setToolVal('draw');
           else {
             setColorVal(c); 
-            if (tool === 'null') setToolVal('draw');
+            if (tool !== 'draw') setToolVal('draw');
           }
         }}
           className="w-7 h-7 rounded-full transition-transform hover:scale-110 focus:outline-none"
